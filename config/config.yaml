@@ -1,0 +1,3 @@
+source_path: "../data/periodical-issues.csv"
+processed_path: "../data/processed_cl-per-issues.csv"
+# db_conn: "sqlite:///data/etl.db"
