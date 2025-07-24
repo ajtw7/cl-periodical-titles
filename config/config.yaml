@@ -1,3 +1,4 @@
-source_path: "../data/periodical-issues.csv"
-processed_path: "../data/processed_cl-per-issues.csv"
+source_path: "../data/periodical-titles.csv"
+processed_path: "../data/processed_cl-per-titles.csv"
+id_prefix_length: 5
 # db_conn: "sqlite:///data/etl.db"
