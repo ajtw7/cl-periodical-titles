@@ -1,4 +1,39 @@
 source_path: "../data/periodical-titles.csv"
 processed_path: "../data/processed_cl-per-titles.csv"
 id_prefix_length: 8
-# db_conn: "sqlite:///data/etl.db"
+place_mapping:
+  " ": Australia
+  Australia New Zealand: New Zealand
+  Australia New Zealand Fiji Papua New Guinea: Australia
+  Australia New South Wales: New South Wales
+  New South Wales Australian Capital Territory: New South Wales
+  Antarctic Ocean; Antarctica: Antarctica
+  Australia Victoria: Victoria
+  Australia Papua New Guinea New Zealand Fiji: Australia
+  Australia Russia. Russian Empire. Soviet Union. Former Soviet Republics: Russia
+  Great Britain a-tu: Great Britain
+  Shanghai (China): China
+  Turkey Middle East: Turkey
+  Australia New Zealand Papua New Guinea Fiji: Australia
+  Greece New Zealand: New Zealand
+  Victoria Australia: Victoria
+  New South Wales Australian Capital Territory: New South Wales
+  Australian Capital Territory: Australia
+  Indian Ocean: India 
+  Philippines Japan: Philippines
+  Europe Australia: Europe
+  Australasia: Australia
+  Australia a-----: Australia
+  Northern Territory: Australia
+  Shanghai (China): China
+  u-at-qn: Queensland
+  u-at---:  Queensland
+  u-at---  u-at-qn: Queensland
+  u-at-qe: Queensland
+  u-at--: Australia
+  u-at---: Australia
+  u-at-qn: Queensland
+  u-at-qe: Queensland
+  u-at----: Australia
+  u-io---: India
+  a-hk---: Hong Kong

@@ -1,6 +1,5 @@
 import pandas as pd
 import re
-import requests
 import random
 
 
@@ -45,6 +44,7 @@ def convert_dates(df):
 def drop_empty_columns(df, threshold=0.5):
     threshold = len(df) * threshold  # Calculate the threshold based on the number of rows
     df = df.dropna(thresh=threshold, axis=1)
+
     #  print the unique ids of the columns that were dropped
     dropped_columns = df.columns[df.isnull().mean() > threshold].tolist()
     if dropped_columns:
@@ -55,10 +55,6 @@ def drop_empty_columns(df, threshold=0.5):
 
 # Function to handle missing values in specific columns
 def handle_missing(df):
-   
-    # df['Description'] = df['Description'].replace('', 'No Description')
-    # df['Issn'] = df['Issn'].replace('', None)
-    
     # Fill empty 'Start Year' with year from 'Start Date' if available
     if 'Start Year' in df.columns and 'Start Date' in df.columns:
         for idx, row in df.iterrows():
@@ -90,18 +86,29 @@ def trim_whitespace(df):
     return df
 
 # Function to standardize place names using a mapping dictionary
-def standardize_places(df):
+def standardize_places(df, place_mapping):
     # Print unique entries in the 'Place' column
     if 'Place' in df.columns:
         unique_places = df['Place'].unique()
         print("Unique entries in 'Place' column:", unique_places)
-    # df['place'] = df['place'].replace(place_mapping)
+
+    # Replace Null or empty cells with "Australia"
+    df['Place'] = df['Place'].fillna('Australia')  # Replace Null values
+    df['Place'] = df['Place'].replace('', 'Australia')  # Replace empty strings
+
+    
+    df['Place'] = df['Place'].replace(place_mapping)
+
+
+    # Print unique entries in the 'Place' column after standardization
+    unique_places_after = df['Place'].unique()
+    print("Unique entries in 'Place' column after standardization:", unique_places_after)
     return df
 
 
 
 # Single function to run all cleaning steps in order
-def clean_data(df, config):
+def clean_data(df, config, place_mapping):
     df = standardize_column_names(df)
     df = create_unique_id(df, config['id_prefix_length'])
     df = create_issn(df)
@@ -112,5 +119,5 @@ def clean_data(df, config):
     df = remove_duplicates(df)
     df = clean_fields(df)
     df = trim_whitespace(df)
-    df = standardize_places(df)
+    df = standardize_places(df, place_mapping)
     return df
