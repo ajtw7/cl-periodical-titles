@@ -1,6 +1,14 @@
+from logging import config
 import pandas as pd
 import re
 import random
+
+
+# function to merge issues and titles CSV files
+def merge_dataframes(df, df_secondary):
+    if 'Id' not in df.columns or 'title_id' not in df_secondary.columns:
+        raise ValueError("Merge keys 'Id' or 'title_id' are missing in the datasets.")
+    return pd.merge(df, df_secondary, left_on='Id', right_on='title_id', how='left')
 
 
 # Function to standardize column names by replacing underscores with spaces and capitalizing
@@ -20,6 +28,14 @@ def create_issn(df):
         df['Issn'] = None
     # Generate ISSN numbers directly in the 'Issn' column for missing, null, or empty values
     df['Issn'] = df['Issn'].apply(lambda x: f"{random.randint(1000, 9999)}-{random.randint(1000, 9999)}" if pd.isnull(x) or x == '' else x)
+    return df
+
+def differentiate_types(df):
+    # Add a column to differentiate between Titles and Issues based on the presence of 'title_id'
+    if 'title_id' in df.columns:
+        df['Type'] = df['title_id'].apply(lambda x: 'Issue' if pd.notnull(x) else 'Title')
+    else:
+        raise ValueError("Column 'title_id' is missing in the dataset.")
     return df
 
 # Function to drop unnecessary fields from the DataFrame
@@ -108,7 +124,7 @@ def standardize_places(df, place_mapping):
 
 
 # Single function to run all cleaning steps in order
-def clean_data(df, config, place_mapping):
+def clean_data(df, df_secondary, config, place_mapping):
     df = standardize_column_names(df)
     df = create_unique_id(df, config['id_prefix_length'])
     df = create_issn(df)
@@ -116,8 +132,10 @@ def clean_data(df, config, place_mapping):
     df = drop_empty_columns(df, config.get('empty_column_threshold', 0.5))
     df = convert_dates(df)
     df = handle_missing(df)
+    df = standardize_places(df, place_mapping)
     df = remove_duplicates(df)
     df = clean_fields(df)
     df = trim_whitespace(df)
-    df = standardize_places(df, place_mapping)
+    df = merge_dataframes(df, df_secondary)
+    df = differentiate_types(df)
     return df
