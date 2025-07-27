@@ -4,15 +4,11 @@ import re
 import random
 
 
-def rename_cols(df_secondary):
+def rename_cols(df):
     # Rename 'Id_y' to 'Issue Id'
-    df_secondary = df_secondary.rename(columns={'Id_y': 'Issue Id'})
+    df = df.rename(columns={'Id_x': 'Title Id', 'Id_y': 'Issue Id'})
 
-    # Drop 'Title Id' if it exists
-    if 'Title Id' in df_secondary.columns:
-        df_secondary = df_secondary.drop(columns=['Title Id'])
-
-    return df_secondary
+    return df
 
 # function to merge issues and titles CSV files
 def merge_dataframes(df, df_secondary):
@@ -57,14 +53,18 @@ def drop_fields(df, fields_to_drop=None):
 
 
 # Function to convert date columns to datetime format
-def convert_dates(df):
-    # Convert to datetime
-    df['Start Date'] = pd.to_datetime(df['Start Date'], errors='coerce')
-    df['End Date'] = pd.to_datetime(df['End Date'], errors='coerce')
-    # Format as 'Jan 01 2011'
-    df['Start Date'] = df['Start Date'].dt.strftime('%b %d %Y')
-    df['End Date'] = df['End Date'].dt.strftime('%b %d %Y')
-    # Rename column
+def convert_dates(df, date_columns=None):
+    # Default date columns to process
+    if date_columns is None:
+        date_columns = ['Start Date', 'End Date', 'Date']  # Include 'Date' for df_secondary
+
+    for col in date_columns:
+        if col in df.columns:
+            # Convert to datetime
+            df[col] = pd.to_datetime(df[col], errors='coerce')
+            # Format as 'Jan 01 2011'
+            df[col] = df[col].dt.strftime('%b %d %Y')
+
     return df
 
 def drop_empty_columns(df, threshold=0.5):
@@ -126,24 +126,25 @@ def remove_duplicate_columns(df):
 
 
 # Single function to run all cleaning steps in order
-def clean_data(df, df_secondary, config, place_mapping):
+def clean_data(df, df_secondary, config):
     df = standardize_column_names(df)
     df_secondary = standardize_column_names(df_secondary)
     # df = create_unique_id(df, config['id_prefix_length'])
     df = create_issn(df)
-    df = drop_fields(df, ['Extent', 'Description'])
-    df_secondary = drop_fields(df_secondary, ['Text Download Url', 'Description', 'Place'])
+    df = drop_fields(df, ['Extent', 'Description',  'Description', 'Place'])
+    df_secondary = drop_fields(df_secondary, ['Text Download Url'])
     df = drop_empty_columns(df, config.get('empty_column_threshold', 0.5))
     df = convert_dates(df)
+    df_secondary = convert_dates(df_secondary)
     df = handle_missing(df)
-    df = standardize_places(df, place_mapping)
+    # df = standardize_places(df, place_mapping)
     df = remove_duplicates(df)
-    df = clean_fields(df)
+    # df = clean_fields(df)
     df = trim_whitespace(df)
     df_secondary = trim_whitespace(df_secondary)
     df = merge_dataframes(df, df_secondary)
     df = rename_cols(df)
-    # df = drop_fields(df, [ 'Title Id'])
-    df = remove_duplicate_columns(df)
+    df = drop_fields(df, [ 'Title_y'])
+    # df = remove_duplicate_columns(df)
     df = differentiate_types(df)
     return df

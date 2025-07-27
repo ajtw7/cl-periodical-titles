@@ -7,7 +7,7 @@ if __name__ == "__main__":
     with open("../config/config.yaml", 'r') as file:
         config = yaml.safe_load(file)
     df, df_secondary = extract(config)  # Unpack the tuple
-    df = clean_data(df, df_secondary, config, config['place_mapping'])
+    df = clean_data(df, df_secondary, config)
     load(df, config)
 
     # print(df.head())  # Print DataFrame head for debugging
