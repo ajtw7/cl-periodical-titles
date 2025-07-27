@@ -4,6 +4,16 @@ import re
 import random
 
 
+def rename_cols(df_secondary):
+    # Rename 'Id_y' to 'Issue Id'
+    df_secondary = df_secondary.rename(columns={'Id_y': 'Issue Id'})
+
+    # Drop 'Title Id' if it exists
+    if 'Title Id' in df_secondary.columns:
+        df_secondary = df_secondary.drop(columns=['Title Id'])
+
+    return df_secondary
+
 # function to merge issues and titles CSV files
 def merge_dataframes(df, df_secondary):
     if 'Id' not in df.columns or 'Title Id' not in df_secondary.columns:
@@ -18,9 +28,9 @@ def standardize_column_names(df):
     return df
 
 # Function to create a new column 'Id (no prefix)' by removing the first 5 characters from 'Id'
-def create_unique_id(df, id_prefix_length):
-    df['Unique Id'] = df['Id'].apply(lambda x: x[id_prefix_length:] if isinstance(x, str) else x)
-    return df
+# def create_unique_id(df, id_prefix_length):
+#     df['Unique Id'] = df['Id'].apply(lambda x: x[id_prefix_length:] if isinstance(x, str) else x)
+#     return df
 
 def create_issn(df):
     # Check if 'Issn' column exists, if not create it
@@ -31,11 +41,11 @@ def create_issn(df):
     return df
 
 def differentiate_types(df):
-    # Add a column to differentiate between Titles and Issues based on the presence of 'Title Id'
-    if 'Title Id' in df.columns:
-        df['Type'] = df['Title Id'].apply(lambda x: 'Issue' if pd.notnull(x) else 'Title')
+    # Add a column to differentiate between Titles and Issues based on the presence of 'Issue Id'
+    if 'Issue Id' in df.columns:
+        df['Type'] = df['Issue Id'].apply(lambda x: 'Issue' if pd.notnull(x) else 'Title')
     else:
-        raise ValueError("Column 'Title Id' is missing in the dataset.")
+        raise ValueError("Column 'Issue Id' is missing in the dataset.")
     return df
 
 # Function to drop unnecessary fields from the DataFrame
@@ -82,7 +92,6 @@ def remove_duplicates(df):
     df = df.drop_duplicates(subset=['Id'])
     return df
 
-
 # Function to clean 'place' field by removing digits and extra spaces
 def clean_fields(df):
     df['Place'] = df['Place'].apply(lambda x: re.sub(r'\d+', '', x).strip() if isinstance(x, str) else x)
@@ -120,7 +129,7 @@ def remove_duplicate_columns(df):
 def clean_data(df, df_secondary, config, place_mapping):
     df = standardize_column_names(df)
     df_secondary = standardize_column_names(df_secondary)
-    df = create_unique_id(df, config['id_prefix_length'])
+    # df = create_unique_id(df, config['id_prefix_length'])
     df = create_issn(df)
     df = drop_fields(df, ['Extent', 'Description'])
     df_secondary = drop_fields(df_secondary, ['Text Download Url'])
@@ -133,6 +142,8 @@ def clean_data(df, df_secondary, config, place_mapping):
     df = trim_whitespace(df)
     df_secondary = trim_whitespace(df_secondary)
     df = merge_dataframes(df, df_secondary)
+    df = rename_cols(df)
+    # df = drop_fields(df, [ 'Title Id'])
     df = remove_duplicate_columns(df)
     df = differentiate_types(df)
     return df
