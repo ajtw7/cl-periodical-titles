@@ -12,8 +12,12 @@ def load(df, config):
     # Print a message indicating the ETL process is complete
     print("ETL process completed. Output saved to:", config['processed_path'])
 
+     # Save as JSON
+    json_path = config['processed_path'].replace('.csv', '.json')
+    df.to_json(json_path, orient='records', lines=True, force_ascii=False)
+    print("JSON file saved to:", json_path)
 
-     # Automatically open the CSV file
+    # Automatically open the CSV file
     try:
         if platform.system() == "Darwin":  # macOS
             subprocess.call(["open", config['processed_path']])
