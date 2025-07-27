@@ -132,7 +132,7 @@ def clean_data(df, df_secondary, config, place_mapping):
     # df = create_unique_id(df, config['id_prefix_length'])
     df = create_issn(df)
     df = drop_fields(df, ['Extent', 'Description'])
-    df_secondary = drop_fields(df_secondary, ['Text Download Url'])
+    df_secondary = drop_fields(df_secondary, ['Text Download Url', 'Description', 'Place'])
     df = drop_empty_columns(df, config.get('empty_column_threshold', 0.5))
     df = convert_dates(df)
     df = handle_missing(df)
