@@ -6,7 +6,7 @@ import random
 
 def rename_cols(df):
     # Rename 'Id_y' to 'Issue Id'
-    df = df.rename(columns={'Id_x': 'Title Id', 'Id_y': 'Issue Id'})
+    df = df.rename(columns={'Id_x': 'Title Id', 'Id_y': 'Issue Id', 'Title_x' : 'Title'})
 
     return df
 
@@ -32,8 +32,21 @@ def create_issn(df):
     # Check if 'Issn' column exists, if not create it
     if 'Issn' not in df.columns:
         df['Issn'] = None
-    # Generate ISSN numbers directly in the 'Issn' column for missing, null, or empty values
-    df['Issn'] = df['Issn'].apply(lambda x: f"{random.randint(1000, 9999)}-{random.randint(1000, 9999)}" if pd.isnull(x) or x == '' else x)
+
+    # Ensure all values in 'Issn' are in the format XXXX-XXXX
+    def generate_issn():
+        return f"{random.randint(1000, 9999)}-{random.randint(1000, 9999)}"
+
+    def validate_issn(value):
+        # Check if the value matches the ISSN format (XXXX-XXXX)
+        if isinstance(value, str) and re.match(r'^\d{4}-\d{4}$', value):
+            return value
+        # Generate a new ISSN if the value is invalid or missing
+        return generate_issn()
+
+    # Apply validation and generation logic to the 'Issn' column
+    df['Issn'] = df['Issn'].apply(validate_issn)
+
     return df
 
 def differentiate_types(df):
@@ -145,6 +158,6 @@ def clean_data(df, df_secondary, config):
     df = merge_dataframes(df, df_secondary)
     df = rename_cols(df)
     df = drop_fields(df, [ 'Title_y'])
-    # df = remove_duplicate_columns(df)
+    df = remove_duplicate_columns(df)
     df = differentiate_types(df)
     return df

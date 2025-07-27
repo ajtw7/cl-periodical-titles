@@ -1,5 +1,7 @@
 source_path: "../data/periodical-titles.csv"
-processed_path: "../data/processed_cl-per-titles.csv"
+secondary_source_path: "../data/periodical-issues.csv"
+# processed_path: "../data/processed_cl-per-titles.csv"
+processed_path: "../data/processed_periodicals-etl.csv"
 id_prefix_length: 8
 place_mapping:
   " ": Australia
