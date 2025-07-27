@@ -1,4 +1,4 @@
-from logging import config
+# from logging import config
 import pandas as pd
 import re
 import random
@@ -6,9 +6,9 @@ import random
 
 # function to merge issues and titles CSV files
 def merge_dataframes(df, df_secondary):
-    if 'Id' not in df.columns or 'title_id' not in df_secondary.columns:
-        raise ValueError("Merge keys 'Id' or 'title_id' are missing in the datasets.")
-    return pd.merge(df, df_secondary, left_on='Id', right_on='title_id', how='left')
+    if 'Id' not in df.columns or 'Title Id' not in df_secondary.columns:
+        raise ValueError("Merge keys 'Id' or 'Title Id' are missing in the datasets.")
+    return pd.merge(df, df_secondary, left_on='Id', right_on='Title Id', how='left')
 
 
 # Function to standardize column names by replacing underscores with spaces and capitalizing
@@ -31,17 +31,17 @@ def create_issn(df):
     return df
 
 def differentiate_types(df):
-    # Add a column to differentiate between Titles and Issues based on the presence of 'title_id'
-    if 'title_id' in df.columns:
-        df['Type'] = df['title_id'].apply(lambda x: 'Issue' if pd.notnull(x) else 'Title')
+    # Add a column to differentiate between Titles and Issues based on the presence of 'Title Id'
+    if 'Title Id' in df.columns:
+        df['Type'] = df['Title Id'].apply(lambda x: 'Issue' if pd.notnull(x) else 'Title')
     else:
-        raise ValueError("Column 'title_id' is missing in the dataset.")
+        raise ValueError("Column 'Title Id' is missing in the dataset.")
     return df
 
 # Function to drop unnecessary fields from the DataFrame
 def drop_fields(df, fields_to_drop=None):
     if fields_to_drop is None:
-        fields_to_drop = ['Extent', 'Description']  # Default field(s) to drop
+        fields_to_drop = ['Extent', 'Description', 'Text Download Url']  # Default field(s) to drop
     df = df.drop(columns=[field for field in fields_to_drop if field in df.columns])
     return df
 
@@ -60,13 +60,6 @@ def convert_dates(df):
 def drop_empty_columns(df, threshold=0.5):
     threshold = len(df) * threshold  # Calculate the threshold based on the number of rows
     df = df.dropna(thresh=threshold, axis=1)
-
-    #  print the unique ids of the columns that were dropped
-    dropped_columns = df.columns[df.isnull().mean() > threshold].tolist()
-    if dropped_columns:
-        print("Dropped columns due to high missing data:", dropped_columns)
-    else:
-        print("No columns dropped due to missing data.")
     return df
 
 # Function to handle missing values in specific columns
@@ -103,22 +96,22 @@ def trim_whitespace(df):
 
 # Function to standardize place names using a mapping dictionary
 def standardize_places(df, place_mapping):
-    # Print unique entries in the 'Place' column
-    if 'Place' in df.columns:
-        unique_places = df['Place'].unique()
-        print("Unique entries in 'Place' column:", unique_places)
-
     # Replace Null or empty cells with "Australia"
     df['Place'] = df['Place'].fillna('Australia')  # Replace Null values
     df['Place'] = df['Place'].replace('', 'Australia')  # Replace empty strings
-
-    
     df['Place'] = df['Place'].replace(place_mapping)
 
+    return df
 
-    # Print unique entries in the 'Place' column after standardization
-    unique_places_after = df['Place'].unique()
-    print("Unique entries in 'Place' column after standardization:", unique_places_after)
+def remove_duplicate_columns(df):
+    # Remove duplicate columns by keeping the first occurrence
+    df = df.loc[:, ~df.columns.duplicated()]
+    # Print the columns name of the removed duplicates
+    removed_columns = df.columns[df.columns.duplicated()].tolist()
+    if removed_columns:
+        print("Removed duplicate columns:", removed_columns)
+    else:
+        print("No duplicate columns found.")
     return df
 
 
@@ -126,9 +119,11 @@ def standardize_places(df, place_mapping):
 # Single function to run all cleaning steps in order
 def clean_data(df, df_secondary, config, place_mapping):
     df = standardize_column_names(df)
+    df_secondary = standardize_column_names(df_secondary)
     df = create_unique_id(df, config['id_prefix_length'])
     df = create_issn(df)
     df = drop_fields(df, ['Extent', 'Description'])
+    df_secondary = drop_fields(df_secondary, ['Text Download Url'])
     df = drop_empty_columns(df, config.get('empty_column_threshold', 0.5))
     df = convert_dates(df)
     df = handle_missing(df)
@@ -136,6 +131,8 @@ def clean_data(df, df_secondary, config, place_mapping):
     df = remove_duplicates(df)
     df = clean_fields(df)
     df = trim_whitespace(df)
+    df_secondary = trim_whitespace(df_secondary)
     df = merge_dataframes(df, df_secondary)
+    df = remove_duplicate_columns(df)
     df = differentiate_types(df)
     return df
