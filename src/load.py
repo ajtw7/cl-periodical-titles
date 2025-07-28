@@ -8,13 +8,14 @@ def load(df, config):
     output_path = os.path.dirname(config['processed_path'])
     if output_path and not os.path.exists(output_path):
         os.makedirs(output_path)
-    df.to_csv(config['processed_path'], index=False, encoding='utf-8')
-    # Print a message indicating the ETL process is complete
-    print("ETL process completed. Output saved to:", config['processed_path'])
 
-     # Save as JSON
+    # Save as CSV
+    df.to_csv(config['processed_path'], index=False, encoding='utf-8')
+    print("CSV file saved to:", config['processed_path'])
+
+    # Save as JSON (validated JSON array)
     json_path = config['processed_path'].replace('.csv', '.json')
-    df.to_json(json_path, orient='records', lines=True, force_ascii=False)
+    df.to_json(json_path, orient='records', indent=4, force_ascii=False)
     print("JSON file saved to:", json_path)
 
     # Automatically open the CSV file
